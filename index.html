@@ -153,7 +153,7 @@
 
   <script>
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTyxLjfhAQe2tN0dj74gAuG9P3bSNEyn6T4VInk3dYvf-XxIyzR4SiV4MCcLyi6Qh7ujsZOWujl-j_I/pub?output=csv';
-    const SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbxnHNw_VApwTPRFwAfhm-jUtD8wxWiVWVNhOpLaQqlTimlDoZsM3WDY6P0a1XCqcaoD/exec';
+    const SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbz0XTSan92ApQ7hjxnJSSPcaXhNdd2290pAYm-JH3KsZRbJ89NAvabCk9i2fuZZTVLD/exec';
 
     let rawOrders = [];
     let knownOrderIds = new Set();
@@ -184,44 +184,42 @@
     }
 
     async function fetchOrders() {
-      const errorBanner = document.getElementById('error-banner');
-      try {
-        const urlFinal = SHEET_CSV_URL + (SHEET_CSV_URL.includes('?') ? '&' : '?') + `t=${Date.now()}`;
-        const response = await fetch(urlFinal);
-        if (!response.ok) throw new Error("Error conectando con Google Sheets.");
-        
-        const csvText = await response.text();
-        const parsed = parseCSV(csvText);
-        
-        let hasNewOrders = false;
+  const errorBanner = document.getElementById('error-banner');
+  try {
+    const urlFinal = SCRIPT_API_URL + (SCRIPT_API_URL.includes('?') ? '&' : '?') + `t=${Date.now()}`;
+    const response = await fetch(urlFinal);
+    if (!response.ok) throw new Error("Error conectando con Google Sheets API.");
+    
+    const data = await response.json();
+    let hasNewOrders = false;
 
-        rawOrders = parsed.map(order => {
-          if (localStateOverrides[order.id]) {
-            order.estado = localStateOverrides[order.id];
-          }
-          
-          if (!isFirstLoad && order.id && !knownOrderIds.has(order.id)) {
-            hasNewOrders = true;
-          }
-          if (order.id) knownOrderIds.add(order.id);
+    rawOrders = data.map(order => {
+      order.id = String(order.id || '');
+      order.estado = localStateOverrides[order.id] || order.estado || 'PENDIENTE';
+      order.notas = order.notas || order.nota || '';
 
-          return order;
-        });
-
-        if (hasNewOrders) {
-          playNotificationSound();
-        }
-        isFirstLoad = false;
-
-        errorBanner.style.display = 'none';
-        renderDashboard();
-        document.getElementById('last-update').innerText = `Actualizado: ${new Date().toLocaleTimeString('es-CO')}`;
-      } catch (error) {
-        console.error(error);
-        errorBanner.innerText = `⚠️ ${error.message}`;
-        errorBanner.style.display = 'block';
+      if (!isFirstLoad && order.id && !knownOrderIds.has(order.id)) {
+        hasNewOrders = true;
       }
+      if (order.id) knownOrderIds.add(order.id);
+
+      return order;
+    });
+
+    if (hasNewOrders) {
+      playNotificationSound();
     }
+    isFirstLoad = false;
+
+    errorBanner.style.display = 'none';
+    renderDashboard();
+    document.getElementById('last-update').innerText = `Actualizado: ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (error) {
+    console.error(error);
+    errorBanner.innerText = `⚠️ ${error.message}`;
+    errorBanner.style.display = 'block';
+  }
+}
 
     function parseCSV(text) {
       const lines = text.trim().split(/\r?\n/);
