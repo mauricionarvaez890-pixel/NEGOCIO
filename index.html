@@ -127,6 +127,9 @@
         <button class="filter-btn" id="btn-PENDIENTE" onclick="setFilter('PENDIENTE')">🔴 Pendientes</button>
         <button class="filter-btn" id="btn-APROBADO" onclick="setFilter('APROBADO')">🟢 Aprobados</button>
         <button class="filter-btn" id="btn-PROCESO" onclick="setFilter('PROCESO')">🟠 Despachados</button>
+     <button id="btn-sound" class="btn-sound-toggle" onclick="enableAudioNotifications()">
+  🔔 Activar Sonido
+</button>
       </div>
     </div>
 
@@ -193,18 +196,25 @@
     const data = await response.json();
     let hasNewOrders = false;
 
-    rawOrders = data.map(order => {
-      order.id = String(order.id || '');
-      order.estado = localStateOverrides[order.id] || order.estado || 'PENDIENTE';
-      order.notas = order.notas || order.nota || '';
+   rawOrders = data.map(raw => {
+  // Convierte todas las llaves del objeto a minúsculas automáticamente
+  const order = {};
+  Object.keys(raw).forEach(key => {
+    order[key.toLowerCase().trim()] = raw[key];
+  });
 
-      if (!isFirstLoad && order.id && !knownOrderIds.has(order.id)) {
-        hasNewOrders = true;
-      }
-      if (order.id) knownOrderIds.add(order.id);
+  order.id = String(order.id || '');
+  order.estado = localStateOverrides[order.id] || order.estado || 'PENDIENTE';
+  order.pedido = order.pedido || order.detalles || '';
+  order.notas = order.notas || order.nota || '';
 
-      return order;
-    });
+  if (!isFirstLoad && order.id && !knownOrderIds.has(order.id)) {
+    hasNewOrders = true;
+  }
+  if (order.id) knownOrderIds.add(order.id);
+
+  return order;
+});
 
     if (hasNewOrders) {
       playNotificationSound();
@@ -418,9 +428,9 @@ const val = parseInt(String(o.total || '0').replace(/[^0-9]/g, ''), 10);
           licorHTML = `<span class="licor-tag licor-sin">🍹 ${order.licor}</span>`;
         }
 
-        // Limpiar guiones sobrantes en la descripción del pedido
-        let cleanPedidoText = (order.pedido || 'Sin detalles').replace(/\s*-\s*$/, '').trim();
-
+       // LÍNEA 422 CORREGIDA:
+let cleanPedidoText = (order.pedido || order.PEDIDO || order.detalles || order.DETALLES || 'Sin detalles').replace(/\s*-\s*$/, '').trim();
+        
         // Extraer y destacar notas si existen en el pedido
 let userNote = order.notas || order.nota || '';
 let noteHTML = '';
@@ -502,6 +512,21 @@ if (userNote) {
       document.getElementById('modal-overlay').style.display = 'none';
     }
 
+let soundEnabled = false;
+
+function enableAudioNotifications() {
+  const btn = document.getElementById('btn-sound');
+  if (typeof playNotificationSound === 'function') {
+    playNotificationSound();
+  }
+  soundEnabled = true;
+
+  if (btn) {
+    btn.innerHTML = '✅ Sonido Activado';
+    btn.style.backgroundColor = '#28a745';
+    btn.style.color = '#ffffff';
+  }
+}
     
     // Establecer la fecha de hoy por defecto al cargar la pantalla
 document.getElementById('filter-date').valueAsDate = new Date();
