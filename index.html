@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CULE PARCHE - PEDIDOS 🤪</title>
+  <title>CULE PARCHE - Dashboard 24/7</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background-color: #0b1329; color: #f8fafc; padding: 16px; }
     
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; flex-wrap: wrap; gap: 10px; }
-    h1 { font-size: 1.5rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; font-weight: 900; }
-    
-    .status-bar { font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 10px; background: #1e293b; padding: 6px 12px; border-radius: 20px; }
-    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
-    .sound-btn { background: #38bdf8; color: #0b1329; border: none; padding: 4px 10px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
+    h1 { font-size: 1.4rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .status-bar { font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; background: #1e293b; padding: 5px 10px; border-radius: 20px; }
+    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e; }
 
     /* Panel Métrico */
     .metrics-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px; background: #131f37; padding: 12px; border-radius: 10px; border: 1px solid #1e293b; }
@@ -22,20 +20,25 @@
     .metric-value { font-size: 1.3rem; font-weight: 800; color: #38bdf8; }
     .metric-value.green { color: #4ade80; }
 
-    /* Controles de Fecha */
-    .date-picker-wrapper { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-bottom: 12px; flex-wrap: wrap; }
-    .date-picker-wrapper label { font-size: 0.82rem; color: #94a3b8; font-weight: 600; }
-    .date-picker-wrapper input { background: #131f37; border: 1px solid #334155; color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; outline: none; }
+    /* Controles de Filtros y Fechas (Responsive) */
+    .top-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+    .date-picker-wrapper { display: flex; align-items: center; gap: 8px; background: #131f37; padding: 8px 12px; border-radius: 10px; border: 1px solid #1e293b; }
+    .date-picker-wrapper label { font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
+    .date-picker-wrapper input { background: #0b1329; border: 1px solid #334155; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; outline: none; }
 
-    /* Filtros Estado */
-    .filter-container { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; background-color: #131f37; padding: 10px 12px; border-radius: 10px; border: 1px solid #1e293b; }
-    .filter-btn { background-color: #0b1329; color: #cbd5e1; border: 1px solid #334155; padding: 6px 14px; border-radius: 16px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .filter-container { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background-color: #131f37; padding: 8px 12px; border-radius: 10px; border: 1px solid #1e293b; }
+    .filter-label { font-size: 0.82rem; font-weight: 600; color: #94a3b8; }
+    .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn { background-color: #0b1329; color: #cbd5e1; border: 1px solid #334155; padding: 5px 12px; border-radius: 16px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
     .filter-btn.active { background-color: #38bdf8; color: #0b1329; border-color: #38bdf8; font-weight: 800; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
     
-    /* Tarjeta */
-    .card { background-color: #131f37; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: all 0.2s ease; position: relative; }
+    /* Tarjeta de Pedido */
+    .card { background-color: #131f37; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; position: relative; transition: all 0.2s ease; }
+    .card:hover { border-color: #38bdf880; }
+    
+    /* Alerta de Retraso (>15 min) */
     .card.delayed { border: 2px solid #ef4444; animation: pulseRed 2s infinite; }
     @keyframes pulseRed {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
@@ -43,63 +46,70 @@
       100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
 
-    .card-header { display: flex; justify-content: space-between; align-items: center; }
-    .client-name { font-weight: 800; font-size: 1.05rem; color: #ffffff; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .client-name { font-weight: 700; font-size: 1rem; color: #ffffff; }
     
-    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; }
     .badge-pendiente { background-color: #ef444420; color: #f87171; border: 1px solid #ef4444; }
     .badge-aprobado { background-color: #22c55e20; color: #4ade80; border: 1px solid #22c55e; }
     .badge-proceso { background-color: #f59e0b20; color: #fbbf24; border: 1px solid #f59e0b; }
-
-    .order-details { font-size: 0.9rem; color: #f1f5f9; background-color: #0b1329a0; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; line-height: 1.4; white-space: pre-line; }
+    .badge-neutro { background-color: #64748b20; color: #cbd5e1; border: 1px solid #64748b; }
     
-    .licor-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; margin-left: 4px; }
+    /* Etiqueta Licor */
+    .licor-tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; margin-top: 5px; }
     .licor-con { background-color: #a855f720; color: #c084fc; border: 1px solid #a855f7; }
     .licor-sin { background-color: #06b6d420; color: #22d3ee; border: 1px solid #06b6d4; }
 
-    .sub-detail { font-size: 0.78rem; color: #94a3b8; margin-top: 6px; }
-    .address-text { color: #38bdf8; font-weight: 600; }
-    .delay-warning { color: #f87171; font-weight: 800; font-size: 0.78rem; margin-top: 4px; }
+    /* Destacado de Nota del Cliente */
+    .note-box { background-color: #f59e0b20; color: #fbbf24; border: 1px dashed #f59e0b; padding: 6px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; margin-top: 6px; }
+
+    .order-details { font-size: 0.88rem; color: #cbd5e1; background-color: #0b1329a0; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; }
+    .qty-tag { font-weight: 800; color: #4ade80; font-size: 1rem; }
+    .sub-detail { font-size: 0.78rem; color: #94a3b8; margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+    .address-text { color: #38bdf8; }
+    .delay-warning { color: #f87171; font-weight: 800; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
     
     .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: #64748b; }
-    .price-tag { font-size: 1.05rem; font-weight: 800; color: #38bdf8; }
+    .price-tag { font-size: 0.95rem; font-weight: 700; color: #38bdf8; }
 
+    /* Botones de Acción */
     .action-buttons { display: flex; gap: 6px; border-top: 1px solid #1e293b; padding-top: 8px; }
-    .act-btn { flex: 1; padding: 6px 4px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; border: none; cursor: pointer; color: #fff; }
-    .act-btn-pendiente { background-color: #ef4444; }
-    .act-btn-aprobado { background-color: #22c55e; }
-    .act-btn-despachado { background-color: #f59e0b; }
+    .act-btn { flex: 1; padding: 6px 4px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; border: none; cursor: pointer; color: #fff; text-align: center; }
+    .act-btn-pendiente { background-color: #dc2626; }
+    .act-btn-aprobado { background-color: #16a34a; }
+    .act-btn-despachado { background-color: #d97706; }
     .act-btn-ws { background-color: #25D366; color: #000; font-weight: 800; }
 
     .state-message { text-align: center; padding: 40px; color: #64748b; font-size: 1rem; grid-column: 1 / -1; }
+    .error-msg { color: #f87171; background-color: #450a0a; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; border: 1px solid #ef4444; font-size: 0.85rem; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-card { background: #131f37; border: 1px solid #38bdf880; border-radius: 12px; width: 90%; max-width: 400px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
+    .modal-title { font-size: 1.1rem; color: #38bdf8; font-weight: bold; }
+    .close-btn { background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer; }
+    .modal-body p { margin-bottom: 8px; font-size: 0.88rem; color: #cbd5e1; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>CULE PARCHE - PEDIDOS 🤪</h1>
+    <h1>📝 CULE PARCHE - Pedidos</h1>
     <div class="status-bar">
       <span class="dot"></span>
-      <span id="last-update">Sincronizando...</span>
-      <button class="sound-btn" onclick="enableAudio()">🔔 Activar Sonido</button>
+      <span id="last-update">Cargando...</span>
     </div>
   </header>
-
-  <!-- Filtro por Fecha -->
-  <div class="date-picker-wrapper">
-    <label for="filter-date">📅 Mostrar Día:</label>
-    <input type="date" id="filter-date" onchange="renderDashboard()">
-    <button class="filter-btn" onclick="showAllDates()">Ver Todo el Historial</button>
-  </div>
 
   <!-- Panel Métrico -->
   <div class="metrics-panel">
     <div class="metric-card">
-      <div class="metric-title">Pedidos del Día</div>
-      <div class="metric-value green" id="metric-total-pedidos">0</div>
+      <div class="metric-title">Productos Vendidos</div>
+      <div class="metric-value green" id="metric-total-vendidos">0</div>
     </div>
     <div class="metric-card">
-      <div class="metric-title">Pendientes</div>
+      <div class="metric-title">Pedidos Pendientes</div>
       <div class="metric-value" id="metric-total-pendientes">0</div>
     </div>
     <div class="metric-card">
@@ -108,81 +118,138 @@
     </div>
   </div>
 
-  <!-- Filtros por Estado -->
-  <div class="filter-container">
-    <span style="font-size: 0.8rem; color:#94a3b8; font-weight:bold;">Filtrar:</span>
-    <button class="filter-btn active" id="btn-TODOS" onclick="setFilter('TODOS')">Todos</button>
-    <button class="filter-btn" id="btn-PENDIENTE" onclick="setFilter('PENDIENTE')">🔴 Pendientes</button>
-    <button class="filter-btn" id="btn-APROBADO" onclick="setFilter('APROBADO')">🟢 Aprobados</button>
-    <button class="filter-btn" id="btn-PROCESO" onclick="setFilter('PROCESO')">🟠 Despachados</button>
+  <!-- Controles Superiores (Filtro por Fecha y Estado) -->
+  <div class="top-controls">
+    <div class="filter-container">
+      <span class="filter-label">Estado:</span>
+      <div class="filter-buttons">
+        <button class="filter-btn active" id="btn-TODOS" onclick="setFilter('TODOS')">Todos</button>
+        <button class="filter-btn" id="btn-PENDIENTE" onclick="setFilter('PENDIENTE')">🔴 Pendientes</button>
+        <button class="filter-btn" id="btn-APROBADO" onclick="setFilter('APROBADO')">🟢 Aprobados</button>
+        <button class="filter-btn" id="btn-PROCESO" onclick="setFilter('PROCESO')">🟠 Despachados</button>
+      </div>
+    </div>
+
+    <div class="date-picker-wrapper">
+      <label for="filter-date">📅 Fecha:</label>
+      <input type="date" id="filter-date" onchange="renderDashboard()">
+      <button class="filter-btn" onclick="clearDateFilter()">Ver Todos</button>
+    </div>
   </div>
 
+  <div id="error-banner" class="error-msg"></div>
   <div id="orders-container" class="grid"></div>
 
+  <!-- Modal Detalle -->
+  <div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Detalle del Encargo</span>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-content"></div>
+    </div>
+  </div>
+
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbz0XTSan92ApQ7hjxnJSSPcaXhNdd2290pAYm-JH3KsZRbJ89NAvabCk9i2fuZZTVLD/exec'; // 👈 PEGA AQUÍ TU URL IMPLEMENTADA DE APPS SCRIPT
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTyxLjfhAQe2tN0dj74gAuG9P3bSNEyn6T4VInk3dYvf-XxIyzR4SiV4MCcLyi6Qh7ujsZOWujl-j_I/pub?output=csv';
+    const SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbxnHNw_VApwTPRFwAfhm-jUtD8wxWiVWVNhOpLaQqlTimlDoZsM3WDY6P0a1XCqcaoD/exec';
 
     let rawOrders = [];
     let knownOrderIds = new Set();
     let isFirstLoad = true;
-    let audioEnabled = false;
+    let localStateOverrides = JSON.parse(localStorage.getItem('localStateOverrides') || '{}');
     let currentFilter = 'TODOS';
 
-    // Establecer fecha por defecto: FECHA ACTUAL DEL DISPOSITIVO
-    function setDeviceTodayDate() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      document.getElementById('filter-date').value = `${yyyy}-${mm}-${dd}`;
-    }
-
-    function enableAudio() {
-      audioEnabled = true;
-      playNotificationSound();
-      alert("🔔 Sonido de notificaciones activado para nuevos pedidos.");
+    function toTitleCase(str) {
+      if (!str) return '';
+      return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
 
     function playNotificationSound() {
-      if (!audioEnabled) return;
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); 
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.6);
-      } catch (e) {}
+      } catch (e) { console.log("Audio no permitido aún por el navegador."); }
     }
 
     async function fetchOrders() {
+      const errorBanner = document.getElementById('error-banner');
       try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
+        const urlFinal = SHEET_CSV_URL + (SHEET_CSV_URL.includes('?') ? '&' : '?') + `t=${Date.now()}`;
+        const response = await fetch(urlFinal);
+        if (!response.ok) throw new Error("Error conectando con Google Sheets.");
+        
+        const csvText = await response.text();
+        const parsed = parseCSV(csvText);
         
         let hasNewOrders = false;
-        rawOrders = data.map(o => {
-          if (!isFirstLoad && o.id && !knownOrderIds.has(String(o.id)) && String(o.estado).toUpperCase().includes('PENDIENTE')) {
+
+        rawOrders = parsed.map(order => {
+          if (localStateOverrides[order.id]) {
+            order.estado = localStateOverrides[order.id];
+          }
+          
+          if (!isFirstLoad && order.id && !knownOrderIds.has(order.id)) {
             hasNewOrders = true;
           }
-          if (o.id) knownOrderIds.add(String(o.id));
-          return o;
+          if (order.id) knownOrderIds.add(order.id);
+
+          return order;
         });
 
-        if (hasNewOrders) playNotificationSound();
+        if (hasNewOrders) {
+          playNotificationSound();
+        }
         isFirstLoad = false;
 
+        errorBanner.style.display = 'none';
         renderDashboard();
-        document.getElementById('last-update').innerText = `En vivo: ${new Date().toLocaleTimeString('es-CO')}`;
-      } catch (err) {
-        console.error("Error conectando con la API:", err);
+        document.getElementById('last-update').innerText = `Actualizado: ${new Date().toLocaleTimeString('es-CO')}`;
+      } catch (error) {
+        console.error(error);
+        errorBanner.innerText = `⚠️ ${error.message}`;
+        errorBanner.style.display = 'block';
       }
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length <= 1) return [];
+
+      const parseLine = (line) => {
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') inQuotes = !inQuotes;
+          else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
+          else current += char;
+        }
+        values.push(current.trim());
+        return values.map(v => v.replace(/^"|"$/g, '').trim());
+      };
+
+      const headers = parseLine(lines[0]).map(h => h.toLowerCase());
+
+      return lines.slice(1).map(line => {
+        if (!line.trim()) return null;
+        const values = parseLine(line);
+        let row = {};
+        headers.forEach((header, index) => { row[header] = values[index] || ''; });
+        return row;
+      }).filter(Boolean);
     }
 
     function formatCOP(val) {
@@ -194,9 +261,11 @@
 
     function checkDelayMinutes(fechaStr, estado) {
       if (!fechaStr || !(estado || '').toLowerCase().includes('pendiente')) return { isDelayed: false, minutes: 0 };
+      
       try {
         const parts = fechaStr.split(' ');
         if (parts.length < 2) return { isDelayed: false, minutes: 0 };
+
         const dateParts = parts[0].split(/[\/\-]/);
         const timeParts = parts[1].split(':');
         let hours = parseInt(timeParts[0], 10);
@@ -205,135 +274,234 @@
         if (parts[2] && parts[2].toLowerCase() === 'pm' && hours < 12) hours += 12;
         if (parts[2] && parts[2].toLowerCase() === 'am' && hours === 12) hours = 0;
 
-        let orderDate = dateParts[0].length === 4 
-          ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hours, minutes)
-          : new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes);
+        let orderDate;
+        if (dateParts[0].length === 4) {
+          orderDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hours, minutes);
+        } else {
+          orderDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes);
+        }
 
-        const diffMins = Math.floor((new Date() - orderDate) / 60000);
+        const diffMs = new Date() - orderDate;
+        const diffMins = Math.floor(diffMs / 60000);
+
         return { isDelayed: diffMins >= 15, minutes: diffMins };
-      } catch (e) { return { isDelayed: false, minutes: 0 }; }
+      } catch (e) {
+        return { isDelayed: false, minutes: 0 };
+      }
     }
 
-    function setFilter(f) {
-      currentFilter = f;
-      document.querySelectorAll('.filter-container .filter-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(`btn-${f}`).classList.add('active');
-      renderDashboard();
-    }
-
-    function showAllDates() {
+    function clearDateFilter() {
       document.getElementById('filter-date').value = '';
       renderDashboard();
     }
 
-    async function changeStatus(event, id, nuevoEstado) {
-      event.stopPropagation();
-      rawOrders = rawOrders.map(o => String(o.id) === String(id) ? { ...o, estado: nuevoEstado } : o);
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-container .filter-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-${filter}`);
+      if (activeBtn) activeBtn.classList.add('active');
       renderDashboard();
-      try {
-        await fetch(`${API_URL}?action=updateStatus&id=${id}&estado=${encodeURIComponent(nuevoEstado)}`);
-      } catch (e) {}
     }
 
-    function sendWhatsApp(event, order) {
+    async function changeOrderStatus(event, orderId, nuevoEstado) {
       event.stopPropagation();
-      const phone = (order.telefono || '').replace(/[^0-9]/g, '');
-      const msg = encodeURIComponent(`¡Hola ${order.cliente || ''}! 👋 Tu pedido de *CULE PARCHE* está en estado: *${order.estado || 'PENDIENTE'}*.\n\n🥤 Detalle:\n${order.pedido_detalle}\n\n💰 Total: ${formatCOP(order.total)}`);
-      window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${msg}`, '_blank');
+
+      localStateOverrides[orderId] = nuevoEstado;
+      localStorage.setItem('localStateOverrides', JSON.stringify(localStateOverrides));
+
+      rawOrders = rawOrders.map(o => {
+        if (String(o.id) === String(orderId)) o.estado = nuevoEstado;
+        return o;
+      });
+
+      renderDashboard();
+
+      if (SCRIPT_API_URL) {
+        try {
+          await fetch(`${SCRIPT_API_URL}?id=${encodeURIComponent(orderId)}&estado=${encodeURIComponent(nuevoEstado)}`, { mode: 'no-cors' });
+        } catch (err) {
+          console.error("Error enviando estado a Google Sheets", err);
+        }
+      }
+    }
+
+    function sendWhatsApp(event, encodedOrder) {
+      event.stopPropagation();
+      
+      try {
+        const order = JSON.parse(decodeURIComponent(encodedOrder));
+        let phone = (order.telefono || '').replace(/[^0-9]/g, '');
+        
+        if (phone.length === 10) {
+          phone = '57' + phone;
+        }
+
+        if (!phone) {
+          alert("⚠️ Este pedido no tiene un número de teléfono válido registrado.");
+          return;
+        }
+
+        const msg = encodeURIComponent(
+          `¡Hola ${toTitleCase(order.cliente || '')}! 👋 Tu pedido de ${order.cantidad || 1}x ${order.pedido || 'Granizado'} se encuentra en estado: *${order.estado || 'PENDIENTE'}*. ¡Muchas gracias!`
+        );
+
+        window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+      } catch (err) {
+        console.error("Error al abrir WhatsApp:", err);
+      }
     }
 
     function renderDashboard() {
       const selectedDate = document.getElementById('filter-date').value;
 
-      // 1. Filtrar por Fecha
-      let dateFiltered = rawOrders.filter(o => {
+      let dateFilteredOrders = rawOrders.filter(order => {
         if (!selectedDate) return true;
-        const [yyyy, mm, dd] = selectedDate.split('-');
-        const dateStr = (o.fecha || '');
-        return dateStr.includes(`${dd}/${mm}/${yyyy}`) || dateStr.includes(`${parseInt(dd)}/${parseInt(mm)}/${yyyy}`);
+        const [year, month, day] = selectedDate.split('-');
+        const possibleFormats = [
+          selectedDate,
+          `${day}/${month}/${year}`,
+          `${parseInt(day)}/${parseInt(month)}/${year}`,
+          `${day}-${month}-${year}`
+        ];
+        const orderDate = (order.fecha || '').toLowerCase();
+        return possibleFormats.some(format => orderDate.includes(format));
       });
 
-      // 2. Métricas
-      let totalPedidos = dateFiltered.length;
-      let pendientes = 0;
-      let montoTotal = 0;
+      let vendidosCount = 0;
+      let pendientesCount = 0;
+      let totalDinero = 0;
 
-      dateFiltered.forEach(o => {
-        const est = (o.estado || '').toLowerCase();
-        if (est.includes('pendiente')) pendientes++;
-        const val = parseInt(String(o.total || '0').replace(/[^0-9]/g, ''), 10);
-        if (!isNaN(val)) montoTotal += val;
-      });
-
-      document.getElementById('metric-total-pedidos').innerText = totalPedidos;
-      document.getElementById('metric-total-pendientes').innerText = pendientes;
-      document.getElementById('metric-monto-total').innerText = formatCOP(montoTotal);
-
-      // 3. Filtrar por Estado
-      const finalOrders = dateFiltered.filter(o => {
+      dateFilteredOrders.forEach(o => {
         const est = (o.estado || 'pendiente').toLowerCase();
+        if (est.includes('aprobado') || est.includes('despachado') || est.includes('confirmado') || est.includes('proceso')) {
+          const cant = parseInt(o.cantidad || '1', 10);
+          vendidosCount += isNaN(cant) ? 1 : cant;
+          
+          const val = parseInt((o.total || '0').replace(/[^0-9]/g, ''), 10);
+          if (!isNaN(val)) totalDinero += val;
+        } else if (est.includes('pendiente')) {
+          pendientesCount++;
+        }
+      });
+
+      document.getElementById('metric-total-vendidos').innerText = vendidosCount;
+      document.getElementById('metric-total-pendientes').innerText = pendientesCount;
+      document.getElementById('metric-monto-total').innerText = formatCOP(String(totalDinero));
+
+      const finalOrders = dateFilteredOrders.filter(order => {
+        const est = (order.estado || 'pendiente').toLowerCase();
         if (currentFilter === 'PENDIENTE') return est.includes('pendiente');
-        if (currentFilter === 'APROBADO') return est.includes('aprobado');
-        if (currentFilter === 'PROCESO') return est.includes('despachado') || est.includes('proceso');
+        if (currentFilter === 'APROBADO') return est.includes('aprobado') || est.includes('confirmado');
+        if (currentFilter === 'PROCESO') return est.includes('proceso') || est.includes('despachado');
         return true;
       });
 
       const container = document.getElementById('orders-container');
       if (finalOrders.length === 0) {
-        container.innerHTML = `<div class="state-message">No hay pedidos registrados para esta selección.</div>`;
+        container.innerHTML = `<div class="state-message">No hay pedidos registrados con estos filtros.</div>`;
         return;
       }
 
-      let html = '';
-      finalOrders.forEach(o => {
-        const estClean = (o.estado || 'pendiente').toLowerCase();
-        let badgeClass = 'badge-pendiente';
-        if (estClean.includes('aprobado')) badgeClass = 'badge-aprobado';
-        else if (estClean.includes('despachado') || estClean.includes('proceso')) badgeClass = 'badge-proceso';
+      let newHTML = '';
+      finalOrders.forEach((order) => {
+        const estadoClean = (order.estado || 'pendiente').toLowerCase();
+        
+        let badgeClass = 'badge-neutro';
+        if (estadoClean.includes('pendiente')) badgeClass = 'badge-pendiente';
+        else if (estadoClean.includes('aprobado') || estadoClean.includes('confirmado')) badgeClass = 'badge-aprobado';
+        else if (estadoClean.includes('proceso') || estadoClean.includes('despachado')) badgeClass = 'badge-proceso';
 
-        const delay = checkDelayMinutes(o.fecha, o.estado);
-        const delayedClass = delay.isDelayed ? 'delayed' : '';
-        const delayHTML = delay.isDelayed ? `<div class="delay-warning">⏱️ ¡DEMORADO! (+${delay.minutes} min)</div>` : '';
+        const licorRaw = (order.licor || '').toLowerCase();
+        let licorHTML = '';
+        if (licorRaw.includes('con')) {
+          licorHTML = `<span class="licor-tag licor-con">🍸 CON LICOR</span>`;
+        } else if (licorRaw.includes('sin')) {
+          licorHTML = `<span class="licor-tag licor-sin">🥤 SIN LICOR</span>`;
+        } else if (order.licor) {
+          licorHTML = `<span class="licor-tag licor-sin">🍹 ${order.licor}</span>`;
+        }
 
-        // Formato visual para Con/Sin Licor dentro del texto
-        let detalleFormatted = (o.pedido_detalle || 'Sin detalle')
-          .replace(/CON LICOR/g, '<span class="licor-tag licor-con">🍸 CON LICOR</span>')
-          .replace(/SIN LICOR/g, '<span class="licor-tag licor-sin">🥤 SIN LICOR</span>');
+        // Limpiar guiones sobrantes en la descripción del pedido
+        let cleanPedidoText = (order.pedido || 'Sin detalles').replace(/\s*-\s*$/, '').trim();
 
-        html += `
-          <div class="card ${delayedClass}">
+        // Extraer y destacar notas si existen en el pedido
+        let noteHTML = '';
+        if (cleanPedidoText.toLowerCase().includes('nota:')) {
+          const parts = cleanPedidoText.split(/nota:/i);
+          cleanPedidoText = parts[0].replace(/\s*-\s*$/, '').trim();
+          noteHTML = `<div class="note-box">📝 Nota: ${parts[1].trim()}</div>`;
+        } else if (order.nota) {
+          noteHTML = `<div class="note-box">📝 Nota: ${order.nota}</div>`;
+        }
+
+        const delayInfo = checkDelayMinutes(order.fecha, order.estado);
+        const cardDelayedClass = delayInfo.isDelayed ? 'delayed' : '';
+        const delayWarningHTML = delayInfo.isDelayed 
+          ? `<div class="delay-warning">⏱️ ¡DEMORADO! (+${delayInfo.minutes} min)</div>` 
+          : '';
+
+        const cantidadStr = order.cantidad ? `<span class="qty-tag">${order.cantidad}x</span>` : '';
+        const dirStr = order.direccion ? `<span class="address-text">📍 ${order.direccion}</span>` : '';
+        const formattedName = toTitleCase(order.cliente || 'Cliente Anónimo');
+
+        newHTML += `
+          <div class="card ${cardDelayedClass}" onclick="openModal('${encodeURIComponent(JSON.stringify(order))}')">
             <div class="card-header">
-              <span class="client-name">👤 ${o.cliente || 'Anónimo'}</span>
-              <span class="badge ${badgeClass}">${o.estado || 'PENDIENTE'}</span>
+              <span class="client-name">👤 ${formattedName}</span>
+              <span class="badge ${badgeClass}">${order.estado || 'PENDIENTE'}</span>
             </div>
             <div class="order-details">
-              ${detalleFormatted}
-              ${o.notas ? `<div style="font-size:0.8rem; color:#fbbf24; margin-top:4px;">📝 Nota: ${o.notas}</div>` : ''}
+              ${cantidadStr} ${cleanPedidoText}
+              <div>${licorHTML}</div>
+              ${noteHTML}
               <div class="sub-detail">
-                ${o.direccion ? `<div class="address-text">📍 ${o.direccion}</div>` : ''}
-                ${delayHTML}
+                ${dirStr}
+                ${delayWarningHTML}
               </div>
             </div>
             <div class="card-footer">
-              <span>ID: #${o.id || '0'} | 🕒 ${o.fecha || ''}</span>
-              <span class="price-tag">${formatCOP(o.total)}</span>
+              <span>ID: #${order.id || '0'} | ${order.fecha || ''}</span>
+              <span class="price-tag">${formatCOP(order.total)}</span>
             </div>
             <div class="action-buttons">
-              <button class="act-btn act-btn-pendiente" onclick="changeStatus(event, '${o.id}', 'PENDIENTE')">🔴</button>
-              <button class="act-btn act-btn-aprobado" onclick="changeStatus(event, '${o.id}', 'APROBADO')">🟢 Aceptar</button>
-              <button class="act-btn act-btn-despachado" onclick="changeStatus(event, '${o.id}', 'DESPACHADO')">🟠 Despachar</button>
-              <button class="act-btn act-btn-ws" onclick="sendWhatsApp(event, ${JSON.stringify(o).replace(/"/g, '&quot;')})">💬 WA</button>
+              <button class="act-btn act-btn-pendiente" title="Revertir a Pendiente" onclick="changeOrderStatus(event, '${order.id}', 'PENDIENTE')">🔴 Pendiente</button>
+              <button class="act-btn act-btn-aprobado" onclick="changeOrderStatus(event, '${order.id}', 'APROBADO')">🟢 Aceptar</button>
+              <button class="act-btn act-btn-despachado" onclick="changeOrderStatus(event, '${order.id}', 'DESPACHADO')">🟠 Despachar</button>
+              <button class="act-btn act-btn-ws" onclick="sendWhatsApp(event, '${encodeURIComponent(JSON.stringify(order))}')">💬 WA</button>
             </div>
           </div>
         `;
       });
 
-      container.innerHTML = html;
+      container.innerHTML = newHTML;
     }
 
-    setDeviceTodayDate();
+    function openModal(jsonEncodedOrder) {
+      const order = JSON.parse(decodeURIComponent(jsonEncodedOrder));
+      const modalContent = document.getElementById('modal-content');
+      
+      modalContent.innerHTML = `
+        <p><strong>N° de ID:</strong> #${order.id || 'N/A'}</p>
+        <p><strong>Hora/Fecha:</strong> ${order.fecha || 'N/A'}</p>
+        <p><strong>Cliente:</strong> 👤 ${toTitleCase(order.cliente || 'Anónimo')}</p>
+        <p><strong>Cantidad:</strong> ${order.cantidad || '1'}</p>
+        <p><strong>Pedido:</strong> ${order.pedido || 'N/A'}</p>
+        <p><strong>Licor:</strong> ${order.licor || 'N/A'}</p>
+        <p><strong>Dirección:</strong> 📍 ${order.direccion || 'No especificada'}</p>
+        <p><strong>Teléfono:</strong> 📞 ${order.telefono || 'No registrado'}</p>
+        <p><strong>Valor Total:</strong> <span style="color:#38bdf8; font-weight:bold;">${formatCOP(order.total)}</span></p>
+        <p><strong>Estado Actual:</strong> <span style="text-transform:uppercase; font-weight:bold;">${order.estado || 'PENDIENTE'}</span></p>
+      `;
+
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').style.display = 'none';
+    }
+
     fetchOrders();
-    setInterval(fetchOrders, 6000); // Sincroniza cada 6 segundos sin delay
+    setInterval(fetchOrders, 10000);
   </script>
 </body>
 </html>
