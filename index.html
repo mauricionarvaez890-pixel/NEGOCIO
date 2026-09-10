@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CULE PARCHE - PEDIDOS 🤪</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #0b1329; color: #f8fafc; padding: 16px; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+    h1 { font-size: 1.5rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; font-weight: 900; }
+    
+    .status-bar { font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 10px; background: #1e293b; padding: 6px 12px; border-radius: 20px; }
+    .dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
+    .sound-btn { background: #38bdf8; color: #0b1329; border: none; padding: 4px 10px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
+
+    /* Panel Métrico */
+    .metrics-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px; background: #131f37; padding: 12px; border-radius: 10px; border: 1px solid #1e293b; }
+    .metric-card { background: #0b1329; padding: 10px; border-radius: 8px; border: 1px solid #1e293b; text-align: center; }
+    .metric-title { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+    .metric-value { font-size: 1.3rem; font-weight: 800; color: #38bdf8; }
+    .metric-value.green { color: #4ade80; }
+
+    /* Controles de Fecha */
+    .date-picker-wrapper { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-bottom: 12px; flex-wrap: wrap; }
+    .date-picker-wrapper label { font-size: 0.82rem; color: #94a3b8; font-weight: 600; }
+    .date-picker-wrapper input { background: #131f37; border: 1px solid #334155; color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; outline: none; }
+
+    /* Filtros Estado */
+    .filter-container { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; background-color: #131f37; padding: 10px 12px; border-radius: 10px; border: 1px solid #1e293b; }
+    .filter-btn { background-color: #0b1329; color: #cbd5e1; border: 1px solid #334155; padding: 6px 14px; border-radius: 16px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .filter-btn.active { background-color: #38bdf8; color: #0b1329; border-color: #38bdf8; font-weight: 800; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    
+    /* Tarjeta */
+    .card { background-color: #131f37; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: all 0.2s ease; position: relative; }
+    .card.delayed { border: 2px solid #ef4444; animation: pulseRed 2s infinite; }
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; }
+    .client-name { font-weight: 800; font-size: 1.05rem; color: #ffffff; }
+    
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+    .badge-pendiente { background-color: #ef444420; color: #f87171; border: 1px solid #ef4444; }
+    .badge-aprobado { background-color: #22c55e20; color: #4ade80; border: 1px solid #22c55e; }
+    .badge-proceso { background-color: #f59e0b20; color: #fbbf24; border: 1px solid #f59e0b; }
+
+    .order-details { font-size: 0.9rem; color: #f1f5f9; background-color: #0b1329a0; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; line-height: 1.4; white-space: pre-line; }
+    
+    .licor-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; margin-left: 4px; }
+    .licor-con { background-color: #a855f720; color: #c084fc; border: 1px solid #a855f7; }
+    .licor-sin { background-color: #06b6d420; color: #22d3ee; border: 1px solid #06b6d4; }
+
+    .sub-detail { font-size: 0.78rem; color: #94a3b8; margin-top: 6px; }
+    .address-text { color: #38bdf8; font-weight: 600; }
+    .delay-warning { color: #f87171; font-weight: 800; font-size: 0.78rem; margin-top: 4px; }
+    
+    .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: #64748b; }
+    .price-tag { font-size: 1.05rem; font-weight: 800; color: #38bdf8; }
+
+    .action-buttons { display: flex; gap: 6px; border-top: 1px solid #1e293b; padding-top: 8px; }
+    .act-btn { flex: 1; padding: 6px 4px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; border: none; cursor: pointer; color: #fff; }
+    .act-btn-pendiente { background-color: #ef4444; }
+    .act-btn-aprobado { background-color: #22c55e; }
+    .act-btn-despachado { background-color: #f59e0b; }
+    .act-btn-ws { background-color: #25D366; color: #000; font-weight: 800; }
+
+    .state-message { text-align: center; padding: 40px; color: #64748b; font-size: 1rem; grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>CULE PARCHE - PEDIDOS 🤪</h1>
+    <div class="status-bar">
+      <span class="dot"></span>
+      <span id="last-update">Sincronizando...</span>
+      <button class="sound-btn" onclick="enableAudio()">🔔 Activar Sonido</button>
+    </div>
+  </header>
+
+  <!-- Filtro por Fecha -->
+  <div class="date-picker-wrapper">
+    <label for="filter-date">📅 Mostrar Día:</label>
+    <input type="date" id="filter-date" onchange="renderDashboard()">
+    <button class="filter-btn" onclick="showAllDates()">Ver Todo el Historial</button>
+  </div>
+
+  <!-- Panel Métrico -->
+  <div class="metrics-panel">
+    <div class="metric-card">
+      <div class="metric-title">Pedidos del Día</div>
+      <div class="metric-value green" id="metric-total-pedidos">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Pendientes</div>
+      <div class="metric-value" id="metric-total-pendientes">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Recaudado Día</div>
+      <div class="metric-value" id="metric-monto-total">$0</div>
+    </div>
+  </div>
+
+  <!-- Filtros por Estado -->
+  <div class="filter-container">
+    <span style="font-size: 0.8rem; color:#94a3b8; font-weight:bold;">Filtrar:</span>
+    <button class="filter-btn active" id="btn-TODOS" onclick="setFilter('TODOS')">Todos</button>
+    <button class="filter-btn" id="btn-PENDIENTE" onclick="setFilter('PENDIENTE')">🔴 Pendientes</button>
+    <button class="filter-btn" id="btn-APROBADO" onclick="setFilter('APROBADO')">🟢 Aprobados</button>
+    <button class="filter-btn" id="btn-PROCESO" onclick="setFilter('PROCESO')">🟠 Despachados</button>
+  </div>
+
+  <div id="orders-container" class="grid"></div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz0XTSan92ApQ7hjxnJSSPcaXhNdd2290pAYm-JH3KsZRbJ89NAvabCk9i2fuZZTVLD/exec'; // 👈 PEGA AQUÍ TU URL IMPLEMENTADA DE APPS SCRIPT
+
+    let rawOrders = [];
+    let knownOrderIds = new Set();
+    let isFirstLoad = true;
+    let audioEnabled = false;
+    let currentFilter = 'TODOS';
+
+    // Establecer fecha por defecto: FECHA ACTUAL DEL DISPOSITIVO
+    function setDeviceTodayDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('filter-date').value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function enableAudio() {
+      audioEnabled = true;
+      playNotificationSound();
+      alert("🔔 Sonido de notificaciones activado para nuevos pedidos.");
+    }
+
+    function playNotificationSound() {
+      if (!audioEnabled) return;
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+      } catch (e) {}
+    }
+
+    async function fetchOrders() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        
+        let hasNewOrders = false;
+        rawOrders = data.map(o => {
+          if (!isFirstLoad && o.id && !knownOrderIds.has(String(o.id)) && String(o.estado).toUpperCase().includes('PENDIENTE')) {
+            hasNewOrders = true;
+          }
+          if (o.id) knownOrderIds.add(String(o.id));
+          return o;
+        });
+
+        if (hasNewOrders) playNotificationSound();
+        isFirstLoad = false;
+
+        renderDashboard();
+        document.getElementById('last-update').innerText = `En vivo: ${new Date().toLocaleTimeString('es-CO')}`;
+      } catch (err) {
+        console.error("Error conectando con la API:", err);
+      }
+    }
+
+    function formatCOP(val) {
+      if (!val) return '$0';
+      const cleanNum = parseInt(String(val).replace(/[^0-9]/g, ''), 10);
+      if (isNaN(cleanNum)) return val;
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(cleanNum);
+    }
+
+    function checkDelayMinutes(fechaStr, estado) {
+      if (!fechaStr || !(estado || '').toLowerCase().includes('pendiente')) return { isDelayed: false, minutes: 0 };
+      try {
+        const parts = fechaStr.split(' ');
+        if (parts.length < 2) return { isDelayed: false, minutes: 0 };
+        const dateParts = parts[0].split(/[\/\-]/);
+        const timeParts = parts[1].split(':');
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+        
+        if (parts[2] && parts[2].toLowerCase() === 'pm' && hours < 12) hours += 12;
+        if (parts[2] && parts[2].toLowerCase() === 'am' && hours === 12) hours = 0;
+
+        let orderDate = dateParts[0].length === 4 
+          ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hours, minutes)
+          : new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes);
+
+        const diffMins = Math.floor((new Date() - orderDate) / 60000);
+        return { isDelayed: diffMins >= 15, minutes: diffMins };
+      } catch (e) { return { isDelayed: false, minutes: 0 }; }
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-container .filter-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn-${f}`).classList.add('active');
+      renderDashboard();
+    }
+
+    function showAllDates() {
+      document.getElementById('filter-date').value = '';
+      renderDashboard();
+    }
+
+    async function changeStatus(event, id, nuevoEstado) {
+      event.stopPropagation();
+      rawOrders = rawOrders.map(o => String(o.id) === String(id) ? { ...o, estado: nuevoEstado } : o);
+      renderDashboard();
+      try {
+        await fetch(`${API_URL}?action=updateStatus&id=${id}&estado=${encodeURIComponent(nuevoEstado)}`);
+      } catch (e) {}
+    }
+
+    function sendWhatsApp(event, order) {
+      event.stopPropagation();
+      const phone = (order.telefono || '').replace(/[^0-9]/g, '');
+      const msg = encodeURIComponent(`¡Hola ${order.cliente || ''}! 👋 Tu pedido de *CULE PARCHE* está en estado: *${order.estado || 'PENDIENTE'}*.\n\n🥤 Detalle:\n${order.pedido_detalle}\n\n💰 Total: ${formatCOP(order.total)}`);
+      window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${msg}`, '_blank');
+    }
+
+    function renderDashboard() {
+      const selectedDate = document.getElementById('filter-date').value;
+
+      // 1. Filtrar por Fecha
+      let dateFiltered = rawOrders.filter(o => {
+        if (!selectedDate) return true;
+        const [yyyy, mm, dd] = selectedDate.split('-');
+        const dateStr = (o.fecha || '');
+        return dateStr.includes(`${dd}/${mm}/${yyyy}`) || dateStr.includes(`${parseInt(dd)}/${parseInt(mm)}/${yyyy}`);
+      });
+
+      // 2. Métricas
+      let totalPedidos = dateFiltered.length;
+      let pendientes = 0;
+      let montoTotal = 0;
+
+      dateFiltered.forEach(o => {
+        const est = (o.estado || '').toLowerCase();
+        if (est.includes('pendiente')) pendientes++;
+        const val = parseInt(String(o.total || '0').replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(val)) montoTotal += val;
+      });
+
+      document.getElementById('metric-total-pedidos').innerText = totalPedidos;
+      document.getElementById('metric-total-pendientes').innerText = pendientes;
+      document.getElementById('metric-monto-total').innerText = formatCOP(montoTotal);
+
+      // 3. Filtrar por Estado
+      const finalOrders = dateFiltered.filter(o => {
+        const est = (o.estado || 'pendiente').toLowerCase();
+        if (currentFilter === 'PENDIENTE') return est.includes('pendiente');
+        if (currentFilter === 'APROBADO') return est.includes('aprobado');
+        if (currentFilter === 'PROCESO') return est.includes('despachado') || est.includes('proceso');
+        return true;
+      });
+
+      const container = document.getElementById('orders-container');
+      if (finalOrders.length === 0) {
+        container.innerHTML = `<div class="state-message">No hay pedidos registrados para esta selección.</div>`;
+        return;
+      }
+
+      let html = '';
+      finalOrders.forEach(o => {
+        const estClean = (o.estado || 'pendiente').toLowerCase();
+        let badgeClass = 'badge-pendiente';
+        if (estClean.includes('aprobado')) badgeClass = 'badge-aprobado';
+        else if (estClean.includes('despachado') || estClean.includes('proceso')) badgeClass = 'badge-proceso';
+
+        const delay = checkDelayMinutes(o.fecha, o.estado);
+        const delayedClass = delay.isDelayed ? 'delayed' : '';
+        const delayHTML = delay.isDelayed ? `<div class="delay-warning">⏱️ ¡DEMORADO! (+${delay.minutes} min)</div>` : '';
+
+        // Formato visual para Con/Sin Licor dentro del texto
+        let detalleFormatted = (o.pedido_detalle || 'Sin detalle')
+          .replace(/CON LICOR/g, '<span class="licor-tag licor-con">🍸 CON LICOR</span>')
+          .replace(/SIN LICOR/g, '<span class="licor-tag licor-sin">🥤 SIN LICOR</span>');
+
+        html += `
+          <div class="card ${delayedClass}">
+            <div class="card-header">
+              <span class="client-name">👤 ${o.cliente || 'Anónimo'}</span>
+              <span class="badge ${badgeClass}">${o.estado || 'PENDIENTE'}</span>
+            </div>
+            <div class="order-details">
+              ${detalleFormatted}
+              ${o.notas ? `<div style="font-size:0.8rem; color:#fbbf24; margin-top:4px;">📝 Nota: ${o.notas}</div>` : ''}
+              <div class="sub-detail">
+                ${o.direccion ? `<div class="address-text">📍 ${o.direccion}</div>` : ''}
+                ${delayHTML}
+              </div>
+            </div>
+            <div class="card-footer">
+              <span>ID: #${o.id || '0'} | 🕒 ${o.fecha || ''}</span>
+              <span class="price-tag">${formatCOP(o.total)}</span>
+            </div>
+            <div class="action-buttons">
+              <button class="act-btn act-btn-pendiente" onclick="changeStatus(event, '${o.id}', 'PENDIENTE')">🔴</button>
+              <button class="act-btn act-btn-aprobado" onclick="changeStatus(event, '${o.id}', 'APROBADO')">🟢 Aceptar</button>
+              <button class="act-btn act-btn-despachado" onclick="changeStatus(event, '${o.id}', 'DESPACHADO')">🟠 Despachar</button>
+              <button class="act-btn act-btn-ws" onclick="sendWhatsApp(event, ${JSON.stringify(o).replace(/"/g, '&quot;')})">💬 WA</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    setDeviceTodayDate();
+    fetchOrders();
+    setInterval(fetchOrders, 6000); // Sincroniza cada 6 segundos sin delay
+  </script>
+</body>
+</html>
