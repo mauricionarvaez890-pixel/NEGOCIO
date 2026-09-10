@@ -500,8 +500,12 @@
       document.getElementById('modal-overlay').style.display = 'none';
     }
 
-    fetchOrders();
-    setInterval(fetchOrders, 10000);
+    
+    // Establecer la fecha de hoy por defecto al cargar la pantalla
+document.getElementById('filter-date').valueAsDate = new Date();
+
+fetchOrders();
+setInterval(fetchOrders, 10000);
   </script>
 </body>
 </html>
